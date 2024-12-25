@@ -1,5 +1,5 @@
 '''
-    增加敌方坦克
+    坦克类优化
 '''
 import pygame
 from time import sleep
@@ -14,29 +14,7 @@ class Tank:
     """
     坦克类
     """
-    def __init__(self,left,top) -> None:
-        # 设置我方tank的图片
-        self.images = {
-            'U':pygame.image.load('img/p1tankU.gif'), # 上
-            'D':pygame.image.load('img/p1tankD.gif'), # 下
-            'L':pygame.image.load('img/p1tankL.gif'), # 左
-            'R':pygame.image.load('img/p1tankR.gif')  # 右
-        }
-        # 方向
-        self.direction = 'L'
-        # 根据当前图片的方向获取图片
-        self.image = self.images.get(self.direction)
-        #获取图片的区域
-        self.rect = self.image.get_rect()
-        #设置坦克的位置
-        self.rect.left = left
-        self.rect.top = top
 
-        #设置移动的速度
-        self.speed = 10
-
-        #坦克移动的开关,false表示不移动,True表示移动
-        self.remove = False
 
     def display_tank(self) -> None:
         """
@@ -78,8 +56,29 @@ class MyTank(Tank):
     """
     我方坦克
     """
-    def __init__(self) -> None:
-        pass
+    def __init__(self,left,top) -> None:
+        # 设置我方tank的图片
+        self.images = {
+            'U':pygame.image.load('img/p1tankU.gif'), # 上
+            'D':pygame.image.load('img/p1tankD.gif'), # 下
+            'L':pygame.image.load('img/p1tankL.gif'), # 左
+            'R':pygame.image.load('img/p1tankR.gif')  # 右
+        }
+        # 方向
+        self.direction = 'L'
+        # 根据当前图片的方向获取图片
+        self.image = self.images.get(self.direction)
+        #获取图片的区域
+        self.rect = self.image.get_rect()
+        #设置坦克的位置
+        self.rect.left = left
+        self.rect.top = top
+
+        #设置移动的速度
+        self.speed = 10
+
+        #坦克移动的开关,false表示不移动,True表示移动
+        self.remove = False
 
 class EnemyTank(Tank):
     """
@@ -196,7 +195,7 @@ class MainGame:
         #设置窗口标题
         pygame.display.set_caption("坦克大战1.0")
         #创建我方坦克
-        MainGame.my_tank = Tank(SCREEN_WIDTH//2,SCREEN_HEIGHT//2)
+        MainGame.my_tank = MyTank(SCREEN_WIDTH//2,SCREEN_HEIGHT//2)
         #创建敌方坦克
         self.create_enemy_tank()
 
@@ -207,8 +206,8 @@ class MainGame:
             MainGame.window.fill(BG_COLOR)
             #增加提示文字
             # 1.变量增加文字内容
-            num = 6
-            text = self.get_text_surface('敌方坦克剩余数量{0}'.format(num))
+            # num = 6
+            text = self.get_text_surface('敌方坦克剩余数量{0}'.format(MainGame.enemyTank_count))
             # 2.如何将文字加上
             MainGame.window.blit(text,(10,10))
 
