@@ -1,10 +1,10 @@
 '''
-    我方子弹与敌方坦克的碰撞检测
+    爆炸效果
 '''
 import pygame
 from time import sleep
 import random
-from pygame.sprite import collide_rect
+from pygame.sprite import collide_rect # 碰撞检测
 #设置通用属性
 BG_COLOR = pygame.Color(0,0,0) # 设置窗口背景颜色
 SCREEN_WIDTH = 800  # 设置窗口的宽度
@@ -214,6 +214,10 @@ class Bullet:
         """
         for enemy in MainGame.enemyTank_list:
             if collide_rect(self,enemy):
+                #产生爆炸效果
+                explode = Explode(enemy)
+                #将爆炸效果加入到爆炸效果列表中
+                MainGame.explode_list.append(explode)
                 #修改子弹的状态
                 self.live = False
                 enemy.live = False
@@ -236,13 +240,39 @@ class Explode:
     """
     爆炸效果类
     """
-    def __init__(self) -> None:
-        pass
+    def __init__(self,tank:Tank) -> None:
+        #加载爆炸效果的图片
+        self.images = [
+            pygame.image.load('img/blast0.gif'),
+            pygame.image.load('img/blast1.gif'),
+            pygame.image.load('img/blast2.gif'),
+            pygame.image.load('img/blast3.gif'),
+            pygame.image.load('img/blast4.gif'),
+        ]
+        #爆炸效果的位置
+        self.rect = tank.rect
+        #爆炸效果的图片索引
+        self.step = 0
+        #获取渲染图像
+        self.image = self.images[self.step]
+        #爆炸效果的生存状态
+        self.live = True # 爆炸效果存活
     def display_explode(self) -> None:
         """
         爆炸效果显示
         """
-        pass
+        if self.step < len(self.images): # 如果图片索引小于图片的数量
+            #获取当前爆炸的效果的图片
+            self.image = self.images[self.step]
+            #获取下一张爆炸效果的图像的索引
+            self.step += 1
+            #绘制爆炸效果
+            MainGame.window.blit(self.image,self.rect)
+        else:
+            #初始化爆炸效果的图片索引
+            self.step = 0
+            #修改爆炸效果的生存状态
+            self.live = False # 爆炸效果消失
 
 class Music:
     """
@@ -272,6 +302,8 @@ class MainGame:
     my_bullet_list = []
     #存储敌方子弹的列表
     enemy_bullet_list = []
+    #存储爆炸效果的列表
+    explode_list = []
     def __init__(self) -> None:
         pass
     def start_game(self) -> None:
@@ -319,8 +351,20 @@ class MainGame:
 
             #调用敌方子弹的显示方法
             self.display_enemy_bullet()
-
+            #调用爆炸效果的方法
+            self.display_explode()
             pygame.display.update() #刷新窗口
+
+    def display_explode(self)->None:
+        """
+        显示爆炸效果
+        """
+        for explode in MainGame.explode_list:
+            if explode.live:
+                explode.display_explode()
+            else:
+                MainGame.explode_list.remove(explode)
+
     def display_my_bullet(self):
         """
         我方子弹显示
