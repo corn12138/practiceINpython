@@ -1,5 +1,5 @@
 '''
-    完善子弹类
+    我方坦克发射子弹
 '''
 import pygame
 from time import sleep
@@ -162,7 +162,7 @@ class Bullet:
         """
         子弹显示
         """
-        pass
+        MainGame.window.blit(self.image,self.rect) # 将子弹加入到窗口中
     def move(self) -> None:
         """
         子弹移动
@@ -217,6 +217,8 @@ class MainGame:
     enemyTank_list = []
     #敌方坦克的数量
     enemyTank_count = 6
+    #存储我方子弹的列表
+    my_bullet_list = []
     def __init__(self) -> None:
         pass
     def start_game(self) -> None:
@@ -258,8 +260,20 @@ class MainGame:
             #设置坦克移动的开关，False时，不可以移动
             if MainGame.my_tank.remove:
                 MainGame.my_tank.move()
-            pygame.display.update()
 
+            #调用子弹的显示方法
+            self.display_my_bullet()
+
+            pygame.display.update() #刷新窗口
+    def display_my_bullet(self):
+        """
+        我方子弹显示
+        """
+        for my_bullet in MainGame.my_bullet_list:
+            #调用子弹显示的方法
+            my_bullet.display_bullet()
+            #调用子弹移动的方法
+            my_bullet.move()
     def create_enemy_tank(self):
         """
         创建敌方坦克
@@ -329,6 +343,14 @@ class MainGame:
                     print("按下下键，坦克向下移动")
                     MainGame.my_tank.direction = 'D'
                     MainGame.my_tank.remove = True
+                elif event.key == pygame.K_SPACE: # 按下空格键，发射子弹
+                    print("发射子弹")
+                    # 创建子弹对象
+                    m_bullt = Bullet(MainGame.my_tank)
+                    # 将子弹加入到子弹列表
+                    MainGame.my_bullet_list.append(m_bullt)
+
+
             #松开方向键，坦克停止移动，修改移动开关,但是要限制只有在移动的时候松开才有效
             if event.type == pygame.KEYUP and event.key in (pygame.K_LEFT,pygame.K_RIGHT,pygame.K_UP,pygame.K_DOWN):
                 MainGame.my_tank.remove = False

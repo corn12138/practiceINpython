@@ -1,5 +1,5 @@
 '''
-    完善子弹类
+    敌方坦克发射子弹
 '''
 import pygame
 from time import sleep
@@ -130,6 +130,17 @@ class EnemyTank(Tank):
         else:
             self.move()
             self.step -= 1 # 每移动一次，步长减1
+    def shot(self):
+        """
+        敌方坦克子弹
+        """
+        # 随机生成一个数--作用是控制子弹的频率
+        num = random.randint(1,100)
+
+        if num < 5:
+            return Bullet(self) # 创建子弹对象
+
+
 class Bullet:
     """
     子弹类
@@ -157,17 +168,40 @@ class Bullet:
 
         #子弹的速度
         self.speed = 10
+        #子弹的生存状态
+        self.live = True
 
     def display_bullet(self) -> None:
         """
         子弹显示
         """
-        pass
+        MainGame.window.blit(self.image,self.rect) # 将子弹加入到窗口中
     def move(self) -> None:
         """
         子弹移动
         """
-        pass
+        # 根据子弹生成的方向，进行移动
+        if self.driction == 'L':
+            if self.rect.left > 0:
+                self.rect.left -= self.speed
+            else:
+                #移除子弹
+                self.live = False
+        elif self.driction == 'R':
+            if self.rect.left+self.rect.width < SCREEN_WIDTH:
+                self.rect.left += self.speed
+            else:
+                self.live = False
+        elif self.driction == 'U':
+            if self.rect.top > 0:
+                self.rect.top -= self.speed
+            else:
+               self.live = False
+        elif self.driction == 'D':
+            if self.rect.top+self.rect.height < SCREEN_HEIGHT:
+                self.rect.top += self.speed
+            else:
+                self.live = False
 
 class Wall:
     """
@@ -217,6 +251,10 @@ class MainGame:
     enemyTank_list = []
     #敌方坦克的数量
     enemyTank_count = 6
+    #存储我方子弹的列表
+    my_bullet_list = []
+    #存储敌方子弹的列表
+    enemy_bullet_list = []
     def __init__(self) -> None:
         pass
     def start_game(self) -> None:
@@ -258,14 +296,34 @@ class MainGame:
             #设置坦克移动的开关，False时，不可以移动
             if MainGame.my_tank.remove:
                 MainGame.my_tank.move()
-            pygame.display.update()
+
+            #调用子弹的显示方法
+            self.display_my_bullet()
+
+            #调用敌方子弹的显示方法
+            self.display_enemy_bullet()
+
+            pygame.display.update() #刷新窗口
+    def display_my_bullet(self):
+        """
+        我方子弹显示
+        """
+        for my_bullet in MainGame.my_bullet_list:
+            #判断子弹是否存活
+            if my_bullet.live:
+                #调用子弹显示的方法
+                my_bullet.display_bullet()
+                #调用子弹移动的方法
+                my_bullet.move()
+            else:
+                MainGame.my_bullet_list.remove(my_bullet) # 如果子弹死亡，从列表中删除
 
     def create_enemy_tank(self):
         """
         创建敌方坦克
         """
         self.enemy_top = 100
-        self.enemy_speed = 5
+        self.enemy_speed = 3
         for i in range(MainGame.enemyTank_count):
             left = random.randint(1,7) * 100 # 随机生成敌方坦克的left值
             enemy = EnemyTank(left,self.enemy_top,self.enemy_speed) # 创建敌方坦克对象
@@ -281,7 +339,26 @@ class MainGame:
             #调用敌方坦克移动的方法
             # enemy.move()
             enemy.rand_move()
-    #
+            #调用敌方坦克射击的方法
+            enemy_bullet = enemy.shot()
+            #如果子弹为None，不加入到敌方子弹列表中
+            if enemy_bullet:
+                # 将子弹加入到敌方子弹列表中
+                MainGame.enemy_bullet_list.append(enemy_bullet)
+
+    def display_enemy_bullet(self):
+        """
+        敌方子弹显示
+        """
+        for enemy_bullet in MainGame.enemy_bullet_list:
+            #判断子弹是否存活
+            if enemy_bullet.live:
+                #调用子弹显示的方法
+                enemy_bullet.display_bullet()
+                enemy_bullet.move()
+            else:
+                MainGame.enemy_bullet_list.remove(enemy_bullet)
+
     def get_text_surface(self,text):
         """
         获取文字的Surface
@@ -329,6 +406,16 @@ class MainGame:
                     print("按下下键，坦克向下移动")
                     MainGame.my_tank.direction = 'D'
                     MainGame.my_tank.remove = True
+                elif event.key == pygame.K_SPACE: # 按下空格键，发射子弹
+                    # 判断当前子弹列表中子弹的数量，不能超过5个
+                    if len(MainGame.my_bullet_list) < 5:
+                        print("发射子弹")
+                        # 创建子弹对象
+                        m_bullt = Bullet(MainGame.my_tank)
+                        # 将子弹加入到子弹列表
+                        MainGame.my_bullet_list.append(m_bullt)
+
+
             #松开方向键，坦克停止移动，修改移动开关,但是要限制只有在移动的时候松开才有效
             if event.type == pygame.KEYUP and event.key in (pygame.K_LEFT,pygame.K_RIGHT,pygame.K_UP,pygame.K_DOWN):
                 MainGame.my_tank.remove = False
